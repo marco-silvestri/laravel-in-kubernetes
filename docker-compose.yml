@@ -1,0 +1,51 @@
+version: "3"
+services:
+    laravel.fpm:
+        build:
+            context: .
+            target: fpm_server
+        image: laravel-in-kubernetes/fpm_server
+        environment:
+            APP_DEBUG: "true"
+        volumes:
+            - .:/opt/apps/laravel-in-kubernetes
+        networks:
+            - laravel-in-kubernetes
+    laravel.web:
+        build:
+            context: .
+            target: web_server
+        image: laravel-in-kubernetes/web_server
+        ports:
+            - 8080:80
+        environment:
+            FPM_HOST: laravel.fpm:9000
+        volumes:
+            - ./public:/opt/apps/laravel-in-kubernetes/public
+        networks:
+            - laravel-in-kubernetes
+    laravel.cron:
+        build:
+            context: .
+            target: cron
+        image: laravel-in-kubernetes/cron
+        volumes:
+            - .:/opt/apps/laravel-in-kubernetes
+        networks:
+            - laravel-in-kubernetes
+    laravel.frontend:
+        build:
+            context: .
+            target: frontend
+        command:
+            - npm
+            - run
+            - watch
+        image: laravel-in-kubernetes/frontend
+        volumes:
+            - .:/opt/apps/laravel-in-kubernetes
+            - /opt/app/node_modules/
+        networks:
+            - laravel-in-kubernetes
+networks:
+    laravel-in-kubernetes: null
